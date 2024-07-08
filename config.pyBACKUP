@@ -39,6 +39,7 @@ from libqtile.utils import guess_terminal
 mod = "mod4"
 terminal = guess_terminal()
 color_barra =  "#282a36" 
+dispositivo_red = "wlan0"
 tamano_barra = 30
 tamano_fuente = 15
 tamano_icono = 20
@@ -48,10 +49,19 @@ color_fg = "#ffffff"
 color_bg = "#282a36"
 color_inactivo = "#6272a4"
 color_oscuro = "#44475a"
+color_actualizaciones = "#bc0000"
 color_ventana_info = "#4a6aa3"
+color_layout_normal = "#322f3e"
+color_layout_focus = "#4b3c5d"
+color_grupo1 = "#AEBBC3" #Color Gris Claro
+color_grupo2 = "#6A828D" #Color Gris Azulado
+color_grupo3 = "#40535B" #Color Gris Oscuro
+color_grupo4 = "#253339" #Color Oscuro
+
 
 #Funciones
 
+#Funcion para separar elementos
 def fc_separador():
     return widget.Sep(
                     linewidth = 0,
@@ -59,6 +69,29 @@ def fc_separador():
                     foreground = color_fg,
                     background = color_bg
                 )
+# Funcion para crear pestanas argumento 0 izq, argumento 1 der
+def fc_pestana(vColor, tipo):
+    if tipo == 0:
+        icono = ""
+    else:
+        icono = ""
+    return widget.TextBox(
+                    text = icono,
+                    fontsize = tamano_barra +5,
+                    foreground = vColor,
+                    background = color_bg,
+                    padding = -3
+
+                )
+
+def fc_icono(icono, color_grupo):
+    return widget.TextBox(
+        text = icono,
+        foreground = color_fg,
+        background = color_grupo,
+        fontsize = tamano_icono
+    )
+
     
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -113,6 +146,15 @@ keys = [
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+
+    #Atajo Volumen
+    Key([], "XF86AudioLowerVolume", lazy.spawn("pamixer --decrease 5")),
+    Key([], "XF86AudioRaiseVolume", lazy.spawn("pamixer --increase 5")),
+    Key([], "XF86AudioMute", lazy.spawn("pamixer --toggle-mute")),
+
+    #Brillo de Pantalla
+    Key([], "XF86MonBrightnessUp", lazy.spawn("brightnessctl set +10%")),
+    Key([], "XF86MonBrightnessDown", lazy.spawn("brightnessctl set 10%-")),
 ]
 
 # Add key bindings to switch VTs in Wayland.
@@ -161,8 +203,34 @@ for i,group in enumerate (groups):
     )
 
 layouts = [
-    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
+    #layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
     layout.Max(),
+    layout.Columns(
+        border_normal=color_layout_normal,
+        border_focus=color_layout_focus,
+        border_width=4,
+        border_normal_stack=color_layout_normal,
+        border_focus_stack=color_layout_focus,
+        border_on_single=2,
+        margin=5,
+        margin_on_single=10,
+    ),
+    #layout.MonadTall(
+    #    border_normal=color_layout_normal,
+    #    border_focus=color_layout_focus,
+    #    margin=10,
+    #    border_width=3,
+    #    single_border_width=2,
+    #    single_margin=10,
+    #),
+    #layout.VerticalTile(
+    #    border_normal=color_layout_normal,
+    #    border_focus=color_layout_focus,
+    #    border_width=4,
+    #    border_on_single=2,
+    #    margin=5,
+    #    margin_on_single=10,
+    #),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
@@ -211,9 +279,91 @@ screens = [
                     background = color_bg
                 ),
                 fc_separador(),
-                widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
-                widget.QuickExit(),
-                widget.CurrentLayout(),
+
+                # Pestana grupo 1
+               fc_pestana(color_grupo1, 0),
+               fc_icono("", color_grupo1),
+               widget.ThermalSensor(
+                foreground = color_fg,
+                background = color_grupo1,
+                threshold = 50,
+                tag_sensor = "Core 0",
+                fmt = 'T1:{}'
+               ),
+               widget.ThermalSensor(
+                foreground = color_fg,
+                background = color_grupo1,
+                threshold = 50,
+                tag_sensor = "Core 1",
+                fmt = 'T2:{}'
+               ),
+               fc_icono(" ", color_grupo1),
+               widget.Memory(
+                foreground = color_fg,
+                background = color_grupo1,
+               ),
+               fc_pestana(color_grupo1, 1),
+               fc_separador(),
+                #Fin pestana grupo 1
+
+                #Inicio pestana grupo 2
+                fc_pestana(color_grupo2, 0),
+                fc_icono("", color_grupo2),
+                widget.CheckUpdates(
+                    background = color_grupo2,
+                    colour_have_updates = color_actualizaciones,
+                    colour_no_updates = color_fg,
+                    no_update_string = '0',
+                    display_format = '{updates}',
+                    update_interval = 1800,
+                    distro='Arch_checkupdates'
+                ),
+                fc_icono("", color_grupo2),
+                widget.Net(
+                    foreground = color_fg,
+                    background = color_grupo2,
+                    format = '{down}   {up}',
+                    interface = dispositivo_red,
+                    use_bits = 'true'
+                ),
+                fc_pestana(color_grupo2, 1),
+                fc_separador(),
+                #Fin pestana grupo 2
+
+                #Inicio pestana grupo 3
+                fc_pestana(color_grupo3, 0),
+                widget.Clock(
+                    background = color_grupo3,
+                    foreground = color_fg,
+                    format="%Y-%m-%d %A %I:%M %p"
+                
+                ),
+                fc_icono("",color_grupo3),
+                widget.Volume(
+                    foreground = color_fg,
+                    background = color_grupo3,
+                    limit_max_volume = True,
+                    fontsize = tamano_fuente,
+                ),
+                fc_pestana(color_grupo3,1),
+                fc_separador(),
+                #Fin pestana grupo 3
+
+                #Inicio pestana grupo 4
+                fc_pestana(color_grupo4, 0),
+                widget.CurrentLayoutIcon(
+                    foreground = color_fg,
+                    background = color_grupo4,
+                    scale = 0.6,
+                ),
+                widget.CurrentLayout(
+                    foreground = color_fg,
+                    background = color_grupo4,
+                ),
+                fc_pestana(color_grupo4, 1),
+                fc_separador(),
+                #Fin pestana grupo 4
+
             ],
             tamano_barra,
             background = color_barra,
@@ -251,6 +401,7 @@ floating_layout = layout.Floating(
         Match(title="branchdialog"),  # gitk
         Match(title="pinentry"),  # GPG key password entry
     ]
+
 )
 auto_fullscreen = True
 focus_on_window_activation = "smart"
