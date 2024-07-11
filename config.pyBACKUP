@@ -130,8 +130,15 @@ keys = [
     #Teclas para lanzar menu rofi
     Key([mod], "m", lazy.spawn("rofi -show drun"), desc="Abrir menu"),
     
-    #Teclas para lanzar navegador
+    #Teclas para lanzar navegador firefox
     Key([mod], "d", lazy.spawn("firefox"), desc="Lanzar navegador firefox"),
+    
+    #Teclas para lanzar navegador Brave 
+    Key([mod], "b", lazy.spawn("brave"), desc="Lanzar navegador brave"),
+
+    #Teclas para cambiar idioma de teclado
+    Key([mod], "i", lazy.spawn("setxkbmap us")),  # Cambiar a inglés
+    Key([mod, "shift"], "i", lazy.spawn("setxkbmap es")),  # Cambiar a español
 
     # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
@@ -155,6 +162,10 @@ keys = [
     #Brillo de Pantalla
     Key([], "XF86MonBrightnessUp", lazy.spawn("brightnessctl set +10%")),
     Key([], "XF86MonBrightnessDown", lazy.spawn("brightnessctl set 10%-")),
+
+    #Captura de Pantalla
+    Key([],"Print", lazy.spawn("scrot")),
+    Key([mod],"Print", lazy.spawn("scrot -s")),
 ]
 
 # Add key bindings to switch VTs in Wayland.
@@ -173,7 +184,7 @@ for vt in range(1, 8):
 #Listado de iconos nerd font
 
 groups = [Group(i) for i in [
-    "  ", "  ", "  ","  ", "  ", "  ", "  ", 
+    "  ", "  ", "  ", "  " ,"  ", "  ", "  ", "  ", 
 ]
 ]
 
@@ -251,6 +262,7 @@ widget_defaults = dict(
 )
 extension_defaults = widget_defaults.copy()
 
+
 screens = [
     Screen(
         top=bar.Bar(
@@ -279,7 +291,14 @@ screens = [
                     background = color_bg
                 ),
                 fc_separador(),
-
+                # Bateria
+                widget.Battery(
+                format="{char} {percent:2.0%}",
+                discharge_char='↓',
+                charge_char='↑',
+                low_foreground='ff0000',
+                ),
+                fc_separador(),
                 # Pestana grupo 1
                fc_pestana(color_grupo1, 0),
                fc_icono("", color_grupo1),
@@ -384,6 +403,8 @@ mouse = [
     Click([mod], "Button2", lazy.window.bring_to_front()),
 ]
 
+qtile.mouse = mouse
+
 dgroups_key_binder = None
 dgroups_app_rules = []  # type: list
 follow_mouse_focus = True
@@ -432,3 +453,5 @@ wmname = "LG3D"
 def autostart():
     script = os.path.expanduser("~/.config/qtile/autostart.sh")
     subprocess.run([script])
+    picom_conf_path = os.path.expanduser("~/.config/picom/picom.conf")
+    subprocess.Popen(['picom', '--config', picom_conf_path])
